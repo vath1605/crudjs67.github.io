@@ -123,7 +123,6 @@ addBtn.onclick = () => {
         };
         stock[editIndex] = updatedProduct;
         displayStock(stock);
-        resetForm();
       };
       reader.readAsDataURL(img);
     }else{
