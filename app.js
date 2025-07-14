@@ -6,8 +6,8 @@ const priceInput = document.getElementById("priceInput");
 const imageInput = document.getElementById("imageInput");
 const addBtn = document.getElementById("addBtn");
 const display = document.getElementById("display");
-let code = 1;
-const displayStock = () => {
+let editIndex = -1;
+const displayStock = (stock) => {
   let output = "";
   if (stock.length == 0) {
     output = `
@@ -47,7 +47,7 @@ const displayStock = () => {
 </svg>
                 </button>
                 <button type="button" onclick="updateProduct(${
-                  val.code
+                  index
                 })" class="btn btn-warning">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
 <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
@@ -79,36 +79,73 @@ const displayStock = () => {
   }
 };
 addBtn.onclick = () => {
-  if (
-    nameInput.value != "" &&
-    qtyInput.value != "" &&
-    priceInput.value != "" &&
-    imageInput != "" &&
-    imageInput.files.length > 0) {
-    let imgFile = imageInput.files[0];
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      let imgUrl = e.target.result;
-      let product = {
-        code: code++,
-        name: nameInput.value,
-        qty: qtyInput.value,
-        price: priceInput.value,
-        image: imgUrl,
+  if(editIndex == -1){
+      if (
+      nameInput.value != "" &&
+      qtyInput.value != "" &&
+      priceInput.value != "" &&
+      imageInput != "" &&
+      imageInput.files.length > 0) {
+      let imgFile = imageInput.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        let imgUrl = e.target.result;
+        let product = {
+          code: stock.length + 1,
+          name: nameInput.value,
+          qty: qtyInput.value,
+          price: priceInput.value,
+          image: imgUrl,
+        };
+        stock.push(product);
+        displayStock(stock);
+        nameInput.value = "";
+        qtyInput.value = "";
+        priceInput.value = "";
+        imageInput.value = "";
       };
-      stock.push(product);
-      displayStock();
-      nameInput.value = "";
-      qtyInput.value = "";
-      priceInput.value = "";
-      imageInput.value = "";
-    };
-    reader.readAsDataURL(imgFile);
-  } else {
-    console.log("ERROR");
+      reader.readAsDataURL(imgFile);
+    } else {
+      console.log("ERROR");
+    }
+  }else{
+    if (imageInput.files.length > 0) {
+      let img = imageInput.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        let imgUrl = e.target.result;
+        let updatedProduct = {
+          code: stock[editIndex].code,
+          name: nameInput.value,
+          qty: qtyInput.value,
+          price: priceInput.value,
+          image: imgUrl,
+        };
+        stock[editIndex] = updatedProduct;
+        displayStock(stock);
+        resetForm();
+      };
+      reader.readAsDataURL(img);
+    }else{
+      let newPro = {
+          code: stock[editIndex].code,
+          name: nameInput.value,
+          qty: qtyInput.value,
+          price: priceInput.value,
+          image: stock[editIndex].image,
+        };
+        stock[editIndex]=newPro;
+        displayStock(stock);
+        nameInput.value = "";
+        qtyInput.value = "";
+        priceInput.value = "";
+        imageInput.value = "";
+    }
+    editIndex = -1;
+    addBtn.textContent = "Save Product";
   }
 };
-document.addEventListener("DOMContentLoaded", displayStock);
+document.addEventListener("DOMContentLoaded", displayStock(stock));
 const viewProduct=(code)=>{
   let modal= document.getElementById('modal-body');
   stock.map(val=>{
@@ -158,8 +195,27 @@ const deleteProduct =(index)=>{
   `;
   yesBtn.onclick=()=>{
     stock.splice(index,1);
-    displayStock();
+    displayStock(stock);
 
     document.getElementById('noBtn').click();
+  }
+}
+const updateProduct=(index)=>{
+  let updatePro = stock[index];
+  editIndex = index;
+  nameInput.value = updatePro.name;
+  qtyInput.value = updatePro.qty;
+  priceInput.value = updatePro.price;
+  addBtn.textContent="Update Product";
+}
+searchInput.oninput=(e)=>{
+  let search = e.target.value;
+  if(search != ''){
+    let showPro = stock.filter(val=>
+    val.name.includes(search)
+  )
+  displayStock(showPro);
+  }else{
+    displayStock(stock);
   }
 }
